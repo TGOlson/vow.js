@@ -1,3 +1,14 @@
+/*
+ *
+ * vow.js
+ * Created by Tyler Olson
+ *
+ */
+
+
+// http://promisesaplus.com/
+// pending, fulfilled, or rejected.
+
 var Vow = function() {
   this.callbacks = [];
 };
