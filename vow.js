@@ -1,95 +1,95 @@
-/*
- *
- * vow.js
- * Created by Tyler Olson
- *
- */
-
-
-// http://promisesaplus.com/
-// pending, fulfilled, or rejected.
-
 var Vow = function() {
-  this.promise = new Promise();
+  this.callbacks = [];
 };
 
-Vow.prototype.resolve = function(value) {
-  var promise = this.promise,
-    callbacks = promise.onFulfilledCallbacks;
+Vow.prototype.resolve = function(_value) {
+  var callbacks = this.callbacks;
 
-    console.log(callbacks);
+  if(callbacks) {
+    var value = promisify(_value);
 
-  promise.state = 'fulfilled';
+    for (var i = 0; i < callbacks.length; i++) {
+      var callback = callbacks[i];
+      value.then(callback);
+    }
 
-  for (var i = 0; i < callbacks.length; i++) {
-    var callback = callbacks[i];
-    callback(value);
+    this.value = value;
+    this.callbacks = null;
+
+  } else {
+    // throw new Error("A promise can only be resolved once.");
   }
 };
 
-Vow.prototype.reject = function(reason) {
-  var promise = this.promise,
-    callbacks = promise.onRejectedCallbacks;
-
-  promise.state = 'rejected';
-
-  for (var i = 0; i < callbacks.length; i++) {
-    var callback = callbacks[i];
-    callback(reason);
+function promisify(value) {
+  if (value instanceof Vow) {
+    return value;
+  } else {
+    console.log('not a promise');
+    // return new Promise(value);
+    return {
+        then: function (callback) {
+            return promisify(callback(value));
+        }
+    };
   }
-};
-
-var Promise = function() {
-  this.state = 'pending';
-  this.onFulfilledCallbacks = [];
-  this.onRejectedCallbacks = [];
-};
-
-Promise.prototype.then = function(onFulfilled, onRejected) {
-  var state = this.state;
-
-  console.log(state);
-
-  if (state === 'fulfilled') {
-    console.log('already fulfilled');
-  }
-
-  if (onFulfilled) {
-    this.onFulfilledCallbacks.push(onFulfilled);
-  }
-
-  if (onRejected) {
-    this.onRejectedCallbacks.push(onRejected);
-  }
-
-  // return this;
-};
-
-var vow;
-
-
-vow = new Vow();
-
-
-function somethingAsync() {
-  setTimeout(function() {
-    vow.resolve({cool: 'yes'});
-    // vow.reject('bad data');
-  }, 500);
-
-  return vow.promise;
 }
 
-somethingAsync().then(function(result) {
-  console.log('Result: ', result);
-}, function(err) {
-  console.log('Err: ', err);
-});
+Vow.prototype.then = function(_callback) {
+  var vow = new Vow();
 
-setTimeout(function() {
-  somethingAsync().then(function(result) {
-    console.log('Result: ', result);
-  }, function(err) {
-    console.log('Err: ', err);
-  });
-}, 1000);
+  var callback = function(value) {
+    vow.resolve(_callback(value));
+  };
+
+  if(this.callbacks) {
+    this.callbacks.push(callback);
+  } else {
+    this.value.then(callback);
+  }
+
+  return vow;
+};
+
+
+
+function somethingAsynch() {
+  var promise = new Vow();
+
+  setTimeout(function() {
+    promise.resolve({cool: true});
+  }, 500);
+
+  return promise;
+}
+
+var promise = somethingAsynch();
+
+// promise.then(function(result) {
+//   console.log(result);
+//   result.another = true;
+//   // return result;
+//   return somethingAsynch();
+// }).then(function(another) {
+//   console.log('another ', another);
+//   another.another = true;
+//   return another;
+// }).then(function(result) {
+//   console.log('result', result);
+// });
+
+// setTimeout(function() {
+//   promise.then(function(result) {
+//     console.log(result);
+//   });
+// }, 510);
+
+promise.then(function(result) {
+  console.log('result1: ', result);
+  return somethingAsynch();
+  // return 'abc';
+}).then(function(result) {
+  console.log('result2: ', result);
+}, function(err) {
+  console.log('err: ', err);
+});
