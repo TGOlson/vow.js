@@ -16,7 +16,7 @@ var promise = new Vow();
 
 Unlike other promise libraries, the `promise` object handles both callback registration and promise resolution. This is done for simplicity and code size management.
 
-Because of this `promise` object handles all general promise interaction. Each `promise` has two functions: `then` and `resolve`. To get then eventual return from a `promise`, use the `then` function.
+Because of this, the `promise` object handles all general promise interaction. Each `promise` has two functions: `then` and `resolve`. To get the eventual return from a `promise`, use the `then` function.
 
 
 ```js
@@ -47,10 +47,8 @@ function somethingAsynch() {
 var promise = somethingAsynch();
 
 promise.then(function(result) {
-
   // after the 500ms timeout we receive the result
   // => 'lots of data'
-
 });
 ```
 
